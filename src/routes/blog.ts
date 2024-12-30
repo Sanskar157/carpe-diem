@@ -73,6 +73,20 @@ postRouter.put("/", async (c) => {
     datasourceUrl: c.env.DATABASE_URL,
   }).$extends(withAccelerate());
 
+  const postToUpdate = await prisma.post.findUnique({
+    where: {
+      id: body.data.id,
+    },
+  });
+
+  if (!postToUpdate) {
+    return c.json({ error: "Post not found" }, { status: 404 });
+  }
+
+  if (postToUpdate.published) {
+    return c.json({ error: "Cannot update published post" }, { status: 403 });
+  }
+
   const post = await prisma.post.update({
     where: {
       id: body.data.id,
@@ -168,6 +182,9 @@ postRouter.get("/me", async (c) => {
     return c.json({ message: "Unauthorized. Please log in." });
   }
 
+  const body = await c.req.json();
+  const publishedStatus = body?.data?.published; 
+
   const prisma = new PrismaClient({
     datasourceUrl: c.env.DATABASE_URL,
   }).$extends(withAccelerate());
@@ -176,6 +193,7 @@ postRouter.get("/me", async (c) => {
     const posts = await prisma.post.findMany({
       where: {
         authorId: Number(userId),
+        ...(publishedStatus !== undefined && { published: publishedStatus }),
       },
       select: {
         id: true,
@@ -305,9 +323,6 @@ postRouter.get("/:id", async (c) => {
 
 
 // filter by genre
-// do not allow update once published , allow in draft mode
-// draft get api 
-// signout api
 // delete account
 
 

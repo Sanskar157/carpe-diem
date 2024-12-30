@@ -75,38 +75,5 @@ userRouter.post("/signin", async (c) => {
   }
 });
 
-userRouter.post('/signout', async (c) => {
-  const authHeader = c.req.header("authorization") || "";
 
-  const prisma = new PrismaClient({
-      datasourceUrl: c.env.DATABASE_URL,
-  }).$extends(withAccelerate());
-
-  try {
-      // Extract the token from the Authorization header
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-          c.status(400);
-          return c.json({
-              message: "Authorization header with Bearer token is required"
-          });
-      }
-
-      const token = authHeader.split(' ')[1];
-      if (!token) {
-          c.status(400);
-          return c.json({
-              message: "Token is required"
-          });
-      }
-
-      c.status(200);
-      return c.json({
-          message: "Successfully signed out"
-      });
-  } catch (e) {
-      console.log(e);
-      c.status(500);
-      return c.text('An error occurred while signing out');
-  }
-});
 
